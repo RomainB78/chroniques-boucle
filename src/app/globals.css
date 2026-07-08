@@ -1,0 +1,564 @@
+:root {
+  color-scheme: dark;
+  --ink: #26150e;
+  --gold: #f0b531;
+  --red: #c7352e;
+  --blue: #1687bd;
+  --panel: rgba(28, 18, 12, 0.88);
+  --panel-light: rgba(255, 238, 198, 0.1);
+  --line: rgba(255, 232, 180, 0.22);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: #160d09;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+button {
+  font: inherit;
+}
+
+.game-shell,
+.home,
+.battle {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.map-stage {
+  position: absolute;
+  inset: 0;
+  background: #20110b;
+}
+
+.map-frame {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: max(100vw, calc(100vh * 1.3081));
+  height: max(100vh, calc(100vw / 1.3081));
+  transform: translate(-50%, -50%);
+}
+
+.map-frame img {
+  object-fit: cover;
+  filter: saturate(1.05) contrast(1.02);
+}
+
+.map-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.territory {
+  cursor: default;
+  opacity: 0.08;
+  stroke: rgba(255, 230, 180, 0.5);
+  stroke-width: 0.16;
+  transition: opacity 180ms ease, filter 180ms ease, stroke-width 180ms ease;
+}
+
+.territory.blue {
+  fill: var(--blue);
+}
+
+.territory.red {
+  fill: var(--red);
+}
+
+.territory.neutral {
+  fill: #888;
+}
+
+.territory.clickable {
+  cursor: pointer;
+  opacity: 0.26;
+  filter: drop-shadow(0 0 0.6rem rgba(255, 218, 120, 0.45));
+}
+
+.territory.clickable:hover,
+.territory.selected,
+.territory.targeted {
+  opacity: 0.44;
+  stroke: #ffe3a0;
+  stroke-width: 0.28;
+}
+
+.territory.targeted {
+  stroke: #fff;
+}
+
+.map-label {
+  display: none;
+  fill: #fff5dd;
+  stroke: rgba(35, 14, 9, 0.75);
+  stroke-width: 0.28;
+  paint-order: stroke;
+  font-size: 1.6px;
+  font-weight: 800;
+  pointer-events: none;
+  text-anchor: middle;
+}
+
+.home::after,
+.battle::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  background: radial-gradient(circle at center, transparent 38%, rgba(11, 6, 4, 0.55) 100%);
+}
+
+.home-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 2;
+  display: grid;
+  width: min(92vw, 680px);
+  transform: translate(-50%, -42%);
+  justify-items: center;
+  gap: 24px;
+  color: #fff5d8;
+  text-align: center;
+}
+
+.home-center h1 {
+  margin: 0;
+  text-transform: uppercase;
+  text-shadow: 0 5px 18px rgba(0, 0, 0, 0.9);
+  letter-spacing: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.2rem, 6vw, 5.6rem);
+}
+
+.war-button {
+  min-width: 240px;
+  min-height: 78px;
+  border: 2px solid #fff1b8;
+  border-radius: 8px;
+  color: #3a1606;
+  background: linear-gradient(#ffd955, var(--gold));
+  box-shadow: 0 12px 0 #8a4c10, 0 24px 34px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  font-size: 2rem;
+  font-weight: 900;
+}
+
+.war-button:disabled {
+  cursor: not-allowed;
+  filter: grayscale(0.8) brightness(0.65);
+}
+
+.faction-picker {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  width: min(560px, 100%);
+}
+
+.faction-picker button,
+.panel-actions button,
+.victory button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: #fff3d1;
+  background: rgba(31, 19, 12, 0.86);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.18), 0 10px 24px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.faction-picker .picked {
+  border-color: #ffe18a;
+  background: rgba(122, 56, 26, 0.92);
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border: 1px solid rgba(255, 235, 177, 0.35);
+  border-radius: 8px;
+  color: #ffe9af;
+  background: linear-gradient(180deg, rgba(83, 48, 24, 0.95), rgba(41, 23, 13, 0.96));
+  box-shadow: 0 8px 0 rgba(48, 22, 8, 0.9), 0 18px 24px rgba(0, 0, 0, 0.36);
+  cursor: pointer;
+}
+
+.icon-button svg,
+.panel-actions svg,
+.bastion svg,
+.victory svg,
+.empty-panel svg {
+  width: 22px;
+  height: 22px;
+}
+
+.options {
+  position: absolute;
+  z-index: 3;
+  top: 22px;
+  left: 22px;
+}
+
+.quit {
+  position: absolute;
+  z-index: 3;
+  top: 22px;
+  right: 22px;
+  color: #ffd3d3;
+  background: linear-gradient(#a52020, #5e1212);
+}
+
+.hud.top {
+  position: absolute;
+  z-index: 3;
+  top: 18px;
+  left: 18px;
+  right: 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.hud.top > div,
+.command-panel,
+.victory {
+  border: 1px solid var(--line);
+  color: #fff4d8;
+  background: var(--panel);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.32);
+}
+
+.hud.top > div {
+  display: grid;
+  min-width: 148px;
+  min-height: 52px;
+  padding: 8px 14px;
+  border-radius: 8px;
+}
+
+.hud.top span,
+.city-heading span,
+.bastion small {
+  color: #d9bb84;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.hud.top strong {
+  font-size: 1rem;
+}
+
+.hud.top .icon-button {
+  pointer-events: auto;
+}
+
+.hud.top .danger {
+  margin-left: auto;
+  color: #ffd2d2;
+  background: linear-gradient(#9d2220, #5e1515);
+}
+
+.command-panel {
+  position: absolute;
+  z-index: 3;
+  right: 18px;
+  bottom: 18px;
+  display: grid;
+  width: min(420px, calc(100vw - 36px));
+  max-height: calc(100vh - 100px);
+  gap: 14px;
+  overflow: auto;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.message {
+  padding: 12px;
+  border-radius: 8px;
+  color: #24150b;
+  background: #ffe4a8;
+  font-weight: 800;
+}
+
+.empty-panel {
+  display: grid;
+  min-height: 180px;
+  place-items: center;
+  padding: 24px;
+  text-align: center;
+  color: #e9d4a8;
+}
+
+.city-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.city-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.city-heading h2 {
+  margin: 2px 0 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.7rem;
+  letter-spacing: 0;
+}
+
+.city-heading strong {
+  color: #ffe49b;
+  font-size: 1.3rem;
+}
+
+.bastion-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.bastion {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  grid-template-areas:
+    "icon soldiers"
+    "icon owner";
+  align-items: center;
+  min-height: 64px;
+  padding: 8px;
+  border: 1px solid rgba(255, 228, 156, 0.22);
+  border-radius: 8px;
+  color: #fff2d5;
+  background: var(--panel-light);
+  cursor: pointer;
+  text-align: left;
+}
+
+.bastion span {
+  grid-area: icon;
+  color: #f0ca72;
+}
+
+.bastion strong {
+  grid-area: soldiers;
+  font-size: 1.02rem;
+}
+
+.bastion small {
+  grid-area: owner;
+}
+
+.bastion.selected {
+  border-color: #ffe28a;
+  background: rgba(240, 181, 49, 0.2);
+}
+
+.bastion:disabled,
+.panel-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.panel-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.panel-actions .primary-action,
+.panel-actions .ghost-action {
+  grid-column: 1 / -1;
+}
+
+.panel-actions .primary-action {
+  color: #281504;
+  background: linear-gradient(#ffe174, #e3a922);
+}
+
+.battle-report,
+.log {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.07);
+  color: #ead4aa;
+  font-size: 0.86rem;
+}
+
+.log {
+  padding-left: 30px;
+}
+
+.victory {
+  position: absolute;
+  z-index: 6;
+  left: 50%;
+  top: 50%;
+  display: grid;
+  min-width: min(420px, 88vw);
+  transform: translate(-50%, -50%);
+  justify-items: center;
+  gap: 18px;
+  padding: 32px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.victory h2 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 2.6rem;
+}
+
+.modal-backdrop {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.76);
+}
+
+.rules-modal {
+  position: relative;
+  width: min(860px, 94vw);
+  height: min(92vh, 1180px);
+  border: 1px solid rgba(255, 222, 155, 0.45);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #2b160d;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.7);
+}
+
+.rules-modal img {
+  object-fit: contain;
+}
+
+.rules-modal .close {
+  position: absolute;
+  z-index: 2;
+  top: 12px;
+  right: 12px;
+  color: #ffd3d3;
+  background: linear-gradient(#93201d, #571211);
+}
+
+.rules-nav {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transform: translateX(-50%);
+  color: #ffe5aa;
+  font-weight: 900;
+}
+
+.rules-nav button {
+  width: 42px;
+  height: 42px;
+  border: 1px solid #79c7ff;
+  border-radius: 8px;
+  color: #ccecff;
+  background: rgba(18, 72, 118, 0.85);
+  font-size: 2rem;
+}
+
+/* Hide Next.js Dev Tools - multiple approaches */
+nextjs-portal {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+[data-nextjs-dev-tools-button] {
+  display: none !important;
+}
+
+button[aria-label*="Dev Tools"],
+button[aria-label*="Open Next"],
+button[aria-label*="Close Next"] {
+  display: none !important;
+}
+
+/* Hide any element that looks like it could be the dev tools button */
+body > button:last-of-type {
+  display: none !important;
+}
+
+/* Target by common Next.js class patterns */
+[class*="dev-tools"],
+[class*="devtools"],
+[data-testid*="dev-tools"] {
+  display: none !important;
+}
+
+@media (max-width: 760px) {
+  .map-stage img {
+    object-position: center;
+  }
+
+  .hud.top {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .hud.top > div {
+    min-width: 118px;
+  }
+
+  .command-panel {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    width: auto;
+    max-height: 46vh;
+  }
+
+  .home-center {
+    transform: translate(-50%, -46%);
+  }
+
+  .faction-picker,
+  .bastion-list,
+  .panel-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Hide Next.js Dev Tools */
+[data-nextjs-dev-tools-button] {
+  display: none !important;
+}
