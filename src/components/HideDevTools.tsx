@@ -8,7 +8,7 @@ export function HideDevTools() {
     const hideDevTools = () => {
       try {
         // Hide the NEXTJS-PORTAL element which contains the dev tools
-        const portal = document.querySelector('nextjs-portal');
+        const portal = document.querySelector('nextjs-portal') as HTMLElement | null;
         if (portal) {
           portal.style.display = 'none';
           portal.style.visibility = 'hidden';
@@ -19,7 +19,7 @@ export function HideDevTools() {
         const portals = document.querySelectorAll('nextjs-portal, [class*="portal"]');
         portals.forEach((p) => {
           const children = p.querySelectorAll('button');
-          children.forEach((btn) => {
+          children.forEach((btn: HTMLButtonElement) => {
             const ariaLabel = btn.getAttribute('aria-label');
             if (
               ariaLabel &&
@@ -30,7 +30,7 @@ export function HideDevTools() {
               btn.style.pointerEvents = 'none';
               // Also hide parent if needed
               if (btn.parentElement) {
-                btn.parentElement.style.display = 'none';
+                (btn.parentElement as HTMLElement).style.display = 'none';
               }
             }
           });
