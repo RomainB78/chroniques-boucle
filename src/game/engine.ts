@@ -299,15 +299,14 @@ export function resolveAttack(state: GameState): GameState {
   report.attackerDestroyed = attacker.soldiers === 0;
   report.defenderDestroyed = defender.soldiers === 0;
 
-  // Les bastions ne sont plus supprimés - ils restent à 0 soldat
-  // Les bastions à 0 soldat deviennent inactifs mais restent présents
-
   // Conquête de la ville : si tous les bastions actifs sont détruits (0 soldat),
-  // la ville est conquise et tous les bastions (y compris ceux à 0 soldat) changent de propriétaire
+  // la ville est conquise et TOUS les bastions (y compris ceux à 0 soldat) changent de propriétaire
   if (activeBastions(targetCity).length === 0 && targetCity.bastions.length > 0 && !report.attackerDestroyed) {
-    // La ville est conquise - tous les bastions changent de propriétaire
+    // Tous les bastions de la ville conquise changent de propriétaire
     for (const bastion of targetCity.bastions) {
       bastion.owner = state.turn;
+      // Le bastion qui sera la capitale est l'attaquant
+      bastion.isCapital = false;
     }
     
     // Le bastion attaquant devient la nouvelle capitale
