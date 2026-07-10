@@ -83,7 +83,8 @@ export function canExchange(state: GameState, sourceCityId: string, sourceBastio
       areNeighbors(sourceCityId, targetCityId) &&
       sourceBastion &&
       !sourceBastion.isCapital &&
-      activeBastions(target).some((bastion) => !bastion.isCapital && bastion.owner === state.turn)
+      (activeBastions(target).some((bastion) => !bastion.isCapital && bastion.owner === state.turn) ||
+       target.bastions.some((bastion) => bastion.soldiers === 0 && bastion.owner === state.turn && !bastion.isCapital))
   );
 }
 
@@ -144,7 +145,7 @@ function normalizeCityOwner(city: City) {
 }
 
 function removeDestroyed(city: City) {
-  city.bastions = city.bastions.filter((bastion) => bastion.soldiers > 0);
+  // Les bastions ne sont plus supprimés - ils restent à 0 soldat
   normalizeCityOwner(city);
 }
 
@@ -298,15 +299,20 @@ export function resolveAttack(state: GameState): GameState {
   report.attackerDestroyed = attacker.soldiers === 0;
   report.defenderDestroyed = defender.soldiers === 0;
 
-  if (report.attackerDestroyed) {
-    sourceCity.bastions = sourceCity.bastions.filter((bastion) => bastion.id !== attacker.id);
-  }
-
-  if (report.defenderDestroyed) {
-    targetCity.bastions = targetCity.bastions.filter((bastion) => bastion.id !== defender.id);
-  }
+  // Les bastions ne sont plus supprimés - ils restent à 0 soldat
+  // Les bastions à 0 soldat deviennent inactifs mais restent présents
 
   if (targetCity.bastions.length === 0 && !report.attackerDestroyed) {
+    sourceCity.bastions = sourceCity.bastions.filter((bastion) => bastion.id !== attacker.id);
+    attacker.cityId = targetCity.id;
+    attacker.owner = state.turn;
+    attacker.isCapital = true;
+    targetCity.bastions.push(attacker);
+    targetCity.owner = state.turn;
+    report.conqueredCity = targetCity.name;
+  } else if (activeBastions(targetCity).length === 0 && targetCity.bastions.length > 0 && !report.attackerDestroyed) {
+    // Si tous les bastions actifs ont été détruits mais qu'il en reste à 0 soldat,
+    // l'attaquant ne conquiert pas la ville, elle devient sans contrôle
     sourceCity.bastions = sourceCity.bastions.filter((bastion) => bastion.id !== attacker.id);
     attacker.cityId = targetCity.id;
     attacker.owner = state.turn;
@@ -319,7 +325,7 @@ export function resolveAttack(state: GameState): GameState {
   removeDestroyed(sourceCity);
   removeDestroyed(targetCity);
 
-  if (targetCity.bastions.length === 1 && !targetCity.bastions[0].isCapital && targetCity.bastions[0].owner !== state.turn) {
+  if (activeBastions(targetCity).length === 0 && !report.attackerDestroyed) {
     targetCity.owner = "uncontrolled";
   }
 
