@@ -302,7 +302,15 @@ export function resolveAttack(state: GameState): GameState {
   // Les bastions ne sont plus supprimés - ils restent à 0 soldat
   // Les bastions à 0 soldat deviennent inactifs mais restent présents
 
-  if (targetCity.bastions.length === 0 && !report.attackerDestroyed) {
+  // Conquête de la ville : si tous les bastions actifs sont détruits (0 soldat),
+  // la ville est conquise et tous les bastions (y compris ceux à 0 soldat) changent de propriétaire
+  if (activeBastions(targetCity).length === 0 && targetCity.bastions.length > 0 && !report.attackerDestroyed) {
+    // La ville est conquise - tous les bastions changent de propriétaire
+    for (const bastion of targetCity.bastions) {
+      bastion.owner = state.turn;
+    }
+    
+    // Le bastion attaquant devient la nouvelle capitale
     sourceCity.bastions = sourceCity.bastions.filter((bastion) => bastion.id !== attacker.id);
     attacker.cityId = targetCity.id;
     attacker.owner = state.turn;
@@ -310,9 +318,8 @@ export function resolveAttack(state: GameState): GameState {
     targetCity.bastions.push(attacker);
     targetCity.owner = state.turn;
     report.conqueredCity = targetCity.name;
-  } else if (activeBastions(targetCity).length === 0 && targetCity.bastions.length > 0 && !report.attackerDestroyed) {
-    // Si tous les bastions actifs ont été détruits mais qu'il en reste à 0 soldat,
-    // l'attaquant ne conquiert pas la ville, elle devient sans contrôle
+  } else if (targetCity.bastions.length === 0 && !report.attackerDestroyed) {
+    // Cas où la ville n'a aucun bastion (ne devrait pas arriver avec les nouvelles règles)
     sourceCity.bastions = sourceCity.bastions.filter((bastion) => bastion.id !== attacker.id);
     attacker.cityId = targetCity.id;
     attacker.owner = state.turn;
@@ -324,10 +331,6 @@ export function resolveAttack(state: GameState): GameState {
 
   removeDestroyed(sourceCity);
   removeDestroyed(targetCity);
-
-  if (activeBastions(targetCity).length === 0 && !report.attackerDestroyed) {
-    targetCity.owner = "uncontrolled";
-  }
 
   const messageParts = [
     `${sourceCity.name} attaque ${targetCity.name}`,
