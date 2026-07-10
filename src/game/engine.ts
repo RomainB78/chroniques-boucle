@@ -91,18 +91,24 @@ export function canAttack(state: GameState, sourceCityId: string, sourceBastionI
   const source = state.cities[sourceCityId];
   const target = state.cities[targetCityId];
   const sourceBastion = source?.bastions.find((bastion) => bastion.id === sourceBastionId);
+  
+  // Vérifier s'il y a des bastions ennemis ou sans contrôle dans la cible
+  const hasEnemyOrUncontrolledBastions = activeBastions(target).some(
+    (bastion) => bastion.owner !== state.turn
+  );
+  
   return Boolean(
     source &&
       target &&
       source.owner === state.turn &&
       target.owner !== state.turn &&
-      target.owner !== "uncontrolled" &&
       areNeighbors(sourceCityId, targetCityId) &&
       activeBastions(source).length >= 2 &&
       sourceBastion &&
       sourceBastion.owner === state.turn &&
       !sourceBastion.isCapital &&
-      sourceBastion.soldiers >= 10
+      sourceBastion.soldiers >= 10 &&
+      hasEnemyOrUncontrolledBastions
   );
 }
 
